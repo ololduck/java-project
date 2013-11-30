@@ -28,10 +28,11 @@
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${docs.dir}" />
 		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${lib.dir}" />
 	</target>
 
 	<!-- Creates Javadoc -->
-	<target name="docs" depends="compile">
+	<target name="docs" depends="compile, resolve" description="builds the javadoc to ${docs.dir}">
 		<javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
 			<!-- Define which files / directory should get included, we include all -->
 			<fileset dir="${src.dir}">
@@ -47,7 +48,7 @@
 	</target>
 
 	<!--Creates the deployable jar file  -->
-	<target name="jar" depends="compile, resolve">
+	<target name="jar" depends="compile, resolve" description="builds the jar file in ${dist.dir}.">
 		<jar destfile="${dist.dir}\fr.upem.java_advanced.project.jar" basedir="${build.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="fr.upem.java_advanced.project.Main" />
@@ -55,12 +56,12 @@
 		</jar>
 	</target>
 
-	<target name="make" depends="compile, jar, docs" description="make the classes, the JAR file, and build javadoc">
+	<target name="make" depends="compile, jar, docs, resolve" description="make the classes, the JAR file, and build javadoc">
 		<description>Main target</description>
 	</target>
 
 	<!-- Compiles the java code (including the usage of library for JUnit -->
-	<target name="compile" depends="clean, makedir">
+	<target name="compile" depends="clean, makedir, resolve">
 		<javac srcdir="${src.dir}" destdir="${build.dir}">
 			<classpath>
 				<pathelement path="${classpath}" />
@@ -85,6 +86,7 @@
 	         ================================= -->
 
 	<target name="resolve" depends="bootstrap">
+		<mkdir dir="${lib.dir}" />
 		<ivy:retrieve />
 	</target>
 </project>
