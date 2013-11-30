@@ -14,13 +14,14 @@ import java.util.zip.ZipInputStream;
 public class Zip {
 
 	/**
-	 * Extract the zip in the given folder WARNING : If the archive is not
-	 * onetop-proof, the decompression may invade the folder.
+	 * Extract the zip in the given folder.
 	 * 
 	 * @param path
-	 *            the path to the zip file
+	 *            the path to the zip file, will be test with
+	 *            ArchiveChecker.isZipArchive
 	 * @param dst
-	 *            the top father folder where the zip will be extracted
+	 *            the top father folder where the zip will be extracted, must
+	 *            already exist
 	 * @return the path to the extracted folder
 	 */
 	public static Path extract(Path path, Path dst) {
@@ -29,27 +30,21 @@ public class Zip {
 		}
 
 		if (!dst.toFile().isDirectory()) {
-			throw new IllegalArgumentException(dst + " is not a correct folder");
+			throw new IllegalArgumentException(dst.toAbsolutePath() + " is not a correct folder");
 		}
 
 		try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(path.toFile())))) {
-
-			boolean firstFile = true;
 
 			ZipEntry ze = inputStream.getNextEntry();
 			if (ze == null) {
 				throw new IllegalStateException("The archive is empty");
 			}
 
-			do {
-				File f;
+			while ((ze = inputStream.getNextEntry()) != null) {
 
-				f = new File(dst.toFile(), ze.getName());
-				if (!firstFile) {
-					f.getParentFile().mkdir();
-				} else {
-					firstFile = false;
-				}
+				File f = new File(dst.toFile(), ze.getName());
+
+				f.getParentFile().mkdir();
 
 				if (ze.isDirectory()) {
 					f.mkdir();
@@ -64,10 +59,11 @@ public class Zip {
 					while (-1 != (bytesRead = inputStream.read(buf))) {
 						fos.write(buf, 0, bytesRead);
 					}
+
 				} catch (Exception e) {
 					f.delete();
 				}
-			} while ((ze = inputStream.getNextEntry()) != null);
+			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
