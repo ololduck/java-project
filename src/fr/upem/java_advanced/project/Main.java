@@ -27,53 +27,53 @@ public class Main {
 	static {
 		/* cli args definition */
 		Switch checkArchives = new Switch("CheckArchives").setShortFlag('1').setLongFlag("check-archives");
-		
+
 		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 
 		onetop.setHelp("Un seul sous répertoire de nom <onetop> dans le répertoire racine de l'archive sans compter les répertoires et fichiers ignorés comme : './ '");
 		FlaggedOption forceOnetop = new FlaggedOption("forceonetop").setShortFlag('O').setLongFlag("forceonetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 		forceOnetop.setHelp("Comme -o. Si le motif est trouvé, le programme quittera avec erreur.");
-		
+
 		FlaggedOption endsWith = new FlaggedOption("endsWith").setShortFlag('e').setLongFlag("endsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		endsWith.setHelp("les fichiers dont le nom se termine par la <endswith>  sont interdits par exemple: -e ~ pour les noms de fichiers terminant par ~ ou -e __MACOSX ces fichiers/répertoires seront ignorés à la décompression");
 		FlaggedOption forceEndsWith = new FlaggedOption("forceendsWith").setShortFlag('E').setLongFlag("forceendsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		forceEndsWith.setHelp("Comme -e. Si le motif est trouvé, le programme quittera avec erreur.");
-		
+
 		FlaggedOption beginsWith = new FlaggedOption("beginsWith").setShortFlag('b').setLongFlag("beginsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		beginsWith.setHelp("les fichiers/répertoires commençant par <startswith> sont interdits. Par exemple --beginsWith f_ pour les noms de  fichiers commençant par f_");
 		FlaggedOption forceBeginsWith = new FlaggedOption("forcebeginsWith").setShortFlag('B').setLongFlag("forcebeginsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		forceBeginsWith.setHelp("Comme -b. Si le motif est trouvé, le programme quittera avec erreur.");
-		
+
 		FlaggedOption existe = new FlaggedOption("existe").setShortFlag('x').setLongFlag("existe").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		existe.setHelp("Vérifie la présence du fichier ou répertoire (regex). Le répertoire top level est ignoré dans la comparaison. Par exemple:-x index.html");
 		FlaggedOption forceExiste = new FlaggedOption("forceexiste").setShortFlag('X').setLongFlag("forceexiste").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		forceExiste.setHelp("Comme -x. Si le motif est trouvé, le programme quittera avec erreur.");
-		
+
 		FlaggedOption interdit = new FlaggedOption("interdit").setShortFlag('i').setLongFlag("interdit").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		interdit.setHelp("Vérifie l'absence du fichier ou répertoire de regex <interdit> le repertoire top level est ignoré dans la comparaison. Par exemple : --interdit __MACOSX");
 		FlaggedOption forceInterdit = new FlaggedOption("forceinterdit").setShortFlag('I').setLongFlag("forceinterdit").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		forceInterdit.setHelp("Comme -i. Si le motif est trouvé, le programme quittera avec erreur.");
-		
+
 		UnflaggedOption archives = new UnflaggedOption("archives").setStringParser(JSAP.STRING_PARSER).setRequired(true).setGreedy(true);
 		try {
 			/* running modes */
 			jsap.registerParameter(checkArchives);
-			
+
 			jsap.registerParameter(onetop);
 			jsap.registerParameter(forceOnetop);
-			
+
 			jsap.registerParameter(endsWith);
 			jsap.registerParameter(forceEndsWith);
-			
+
 			jsap.registerParameter(beginsWith);
 			jsap.registerParameter(forceBeginsWith);
-			
+
 			jsap.registerParameter(existe);
 			jsap.registerParameter(forceExiste);
-			
+
 			jsap.registerParameter(interdit);
 			jsap.registerParameter(forceInterdit);
-			
+
 			/* the other parameters */
 			jsap.registerParameter(archives);
 
@@ -118,7 +118,6 @@ public class Main {
 		Path archive = Paths.get(cliArgs.getString("archives"));
 		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
 		Zip.extract(archive, folder);
-		/* do the function calls, etc... */
 	}
 
 }
