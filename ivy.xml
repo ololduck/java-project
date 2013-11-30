@@ -1,0 +1,6 @@
+<ivy-module version="2.0">
+    <info organisation="fr.upem.java_advanced" module="project"/>
+    <dependencies>
+        <dependency org="com.martiansoftware" name="jsap" rev="2.1" />
+    </dependencies>
+</ivy-module>
