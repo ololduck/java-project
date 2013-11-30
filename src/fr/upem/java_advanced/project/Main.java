@@ -6,16 +6,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import com.martiansoftware.jsap.FlaggedOption;
-import com.martiansoftware.jsap.JSAP;
-import com.martiansoftware.jsap.JSAPException;
-import com.martiansoftware.jsap.JSAPResult;
-import com.martiansoftware.jsap.Switch;
-import com.martiansoftware.jsap.UnflaggedOption;
-
 public class Main {
 
 	private static final String LOGFILE_NAME = "DMChecker.log";
+	public static JSAPResult config;
 
 	public static void main(String[] args) {
 
@@ -73,7 +67,7 @@ public class Main {
 					+ e.getMessage());
 		}
 
-		JSAPResult config = jsap.parse(args);
+		config = jsap.parse(args);
 		if(!config.success()) {
 			System.err.println(jsap.getHelp());
 		}
