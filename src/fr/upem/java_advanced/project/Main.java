@@ -1,6 +1,8 @@
 package fr.upem.java_advanced.project;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +14,8 @@ import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.UnflaggedOption;
+
+import fr.upem.java_advanced.project.zip.Zip;
 
 public class Main {
 
@@ -25,6 +29,7 @@ public class Main {
 		Switch checkArchives = new Switch("CheckArchives").setShortFlag('1').setLongFlag("check-archives");
 		
 		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
+
 		onetop.setHelp("Un seul sous répertoire de nom <onetop> dans le répertoire racine de l'archive sans compter les répertoires et fichiers ignorés comme : './ '");
 		FlaggedOption forceOnetop = new FlaggedOption("forceonetop").setShortFlag('O').setLongFlag("forceonetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 		forceOnetop.setHelp("Comme -o. Si le motif est trouvé, le programme quittera avec erreur.");
@@ -110,6 +115,9 @@ public class Main {
 			System.err.println(getHelp());
 		}
 
+		Path archive = Paths.get(cliArgs.getString("archives"));
+		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
+		Zip.extract(archive, folder);
 		/* do the function calls, etc... */
 	}
 
