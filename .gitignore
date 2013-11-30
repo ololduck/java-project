@@ -37,3 +37,4 @@ local.properties
 
 /docs
 /dist
+*.odt#
