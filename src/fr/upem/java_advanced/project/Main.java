@@ -41,6 +41,7 @@ public class Main {
 		}
 		
 		JSAPResult config = jsap.parse(args);
+		System.out.println(config);
 		
 		/* do the function calls, etc...*/
 	}
