@@ -44,11 +44,10 @@ public class Zip {
 			do {
 				File f;
 
+				f = new File(dst.toFile(), ze.getName());
 				if (!firstFile) {
-					f = new File(dst.toFile(), ze.getName());
 					f.getParentFile().mkdir();
 				} else {
-					f = new File(dst.toFile(), "./toto");
 					firstFile = false;
 				}
 
