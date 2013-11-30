@@ -1,4 +1,4 @@
-package fr.upem.java_advanced.project;
+package fr.upem.java_advanced.project.zip;
 
 import java.io.IOException;
 import java.nio.file.Path;
