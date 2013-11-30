@@ -1,4 +1,4 @@
-package fr.upem.java_advanced.project;
+package fr.upem.java_advanced.project.io;
 
 /**
  * Created with my hands.
