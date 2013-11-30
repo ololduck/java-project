@@ -6,53 +6,41 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import com.martiansoftware.jsap.FlaggedOption;
+import com.martiansoftware.jsap.JSAP;
+import com.martiansoftware.jsap.JSAPException;
+import com.martiansoftware.jsap.JSAPResult;
+import com.martiansoftware.jsap.Switch;
+import com.martiansoftware.jsap.UnflaggedOption;
+
 public class Main {
 
-	private static final String LOGFILE_NAME = "DMChecker.log";
-	public static JSAPResult config;
+	private static final String	LOGFILE_NAME	= "DMChecker.log";
+	public static JSAPResult	config;
 
 	public static void main(String[] args) {
 
 		Logger logger = Logger.getLogger("fr.upem.java_advanced.project");
-		FileHandler fh;
 		try {
-			fh = new FileHandler(LOGFILE_NAME);
+			FileHandler fh = new FileHandler(LOGFILE_NAME);
 			fh.setLevel(Level.ALL);
 			fh.setFormatter(new SimpleFormatter());
 		} catch (SecurityException | IOException e1) {
-			logger.warning("Could not open log file \"" + LOGFILE_NAME + "\": "
-					+ e1.getMessage());
+			logger.warning("Could not open log file \"" + LOGFILE_NAME + "\": " + e1.getMessage());
 		}
 
 		JSAP jsap = new JSAP();
-		Switch suddenDeath = new Switch("CheckArchives").setShortFlag('1')
-				.setLongFlag("sudden-death");
-		UnflaggedOption archives = new UnflaggedOption("archives")
-				.setStringParser(JSAP.STRING_PARSER).setRequired(true)
-				.setGreedy(true);
-		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o')
-				.setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER)
-				.setAllowMultipleDeclarations(true);
+		Switch suddenDeath = new Switch("CheckArchives").setShortFlag('1').setLongFlag("sudden-death");
+		UnflaggedOption archives = new UnflaggedOption("archives").setStringParser(JSAP.STRING_PARSER).setRequired(true).setGreedy(true);
+		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true);
 		onetop.setHelp("Un seul sous répertoire de nom <onetop> dans le répertoire racine de l'archive sans compter les répertoires et fichiers ignorés comme : './ '");
-		FlaggedOption endsWith = new FlaggedOption("endsWith")
-				.setShortFlag('e').setLongFlag("endsWith")
-				.setStringParser(JSAP.STRING_PARSER)
-				.setAllowMultipleDeclarations(true);
+		FlaggedOption endsWith = new FlaggedOption("endsWith").setShortFlag('e').setLongFlag("endsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true);
 		endsWith.setHelp("les fichiers dont le nom se termine par la <endswith>  sont interdits par exemple: -e ~ pour les noms de fichiers terminant par ~ ou -e __MACOSX ces fichiers/répertoires seront ignorés à la décompression");
-		FlaggedOption beginsWith = new FlaggedOption("beginsWith")
-				.setShortFlag('b').setLongFlag("beginsWith")
-				.setStringParser(JSAP.STRING_PARSER)
-				.setAllowMultipleDeclarations(true);
-		beginsWith
-				.setHelp("les fichiers/répertoires commençant par <startswith> sont interdits. Par exemple --beginsWith f_ pour les noms de  fichiers commençant par f_");
-		FlaggedOption existe = new FlaggedOption("existe").setShortFlag('x')
-				.setLongFlag("existe").setStringParser(JSAP.STRING_PARSER)
-				.setAllowMultipleDeclarations(true);
+		FlaggedOption beginsWith = new FlaggedOption("beginsWith").setShortFlag('b').setLongFlag("beginsWith").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true);
+		beginsWith.setHelp("les fichiers/répertoires commençant par <startswith> sont interdits. Par exemple --beginsWith f_ pour les noms de  fichiers commençant par f_");
+		FlaggedOption existe = new FlaggedOption("existe").setShortFlag('x').setLongFlag("existe").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true);
 		existe.setHelp("Vérifie la présence du fichier ou répertoire (regex). Le répertoire top level est ignoré dans la comparaison. Par exemple:-x index.html");
-		FlaggedOption interdit = new FlaggedOption("interdit")
-				.setShortFlag('i').setLongFlag("interdit")
-				.setStringParser(JSAP.STRING_PARSER)
-				.setAllowMultipleDeclarations(true);
+		FlaggedOption interdit = new FlaggedOption("interdit").setShortFlag('i').setLongFlag("interdit").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true);
 		interdit.setHelp("Vérifie l'absence du fichier ou répertoire de regex <interdit> le repertoire top level est ignoré dans la comparaison. Par exemple : --interdit __MACOSX");
 		try {
 			jsap.registerParameter(suddenDeath);
@@ -63,12 +51,11 @@ public class Main {
 			jsap.registerParameter(existe);
 			jsap.registerParameter(interdit);
 		} catch (JSAPException e) {
-			logger.severe("Could not register a cli parameter: "
-					+ e.getMessage());
+			logger.severe("Could not register a cli parameter: " + e.getMessage());
 		}
 
 		config = jsap.parse(args);
-		if(!config.success()) {
+		if (!config.success()) {
 			System.err.println(jsap.getHelp());
 		}
 

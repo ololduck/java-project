@@ -70,10 +70,21 @@
 			</classpath>
 		</javac>
 	</target>
+
+	<target name="test-ivy">
+		<available file="${user.home}/.ant/lib/ivy.jar" property="ant.ispresent" />
+	</target>
+
+	<target name="bootstrap" depends="test-ivy" unless="ant.ispresent">
+		<mkdir dir="${user.home}/.ant/lib" />
+		<get dest="${user.home}/.ant/lib/ivy.jar" src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.2.0/ivy-2.2.0.jar" />
+	</target>
+
 	<!-- ================================= 
 	          target: resolve              
 	         ================================= -->
-    <target name="resolve" description="--> retrieve dependencies with ivy">
-        <ivy:retrieve />
-    </target>
+
+	<target name="resolve" depends="bootstrap">
+		<ivy:retrieve />
+	</target>
 </project>
