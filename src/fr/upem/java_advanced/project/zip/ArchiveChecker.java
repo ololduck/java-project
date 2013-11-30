@@ -15,15 +15,19 @@ public class ArchiveChecker {
 	 * @return true, if is a zip file
 	 * @throws IOException
 	 */
-	public static boolean isZipArchive(Path p) throws IOException {
+	public static boolean isZipArchive(Path p) {
 		ZipFile zip = null;
 		try {
 			zip = new ZipFile(p.toFile());
-		} catch (ZipException e) {
+		} catch (IOException e) {
 			return false;
 		} finally {
 			if (zip != null) {
-				zip.close();
+				try {
+					zip.close();
+				} catch (IOException e) {
+					return false;
+				}
 				return true;
 			}
 		}
