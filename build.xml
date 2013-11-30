@@ -7,7 +7,7 @@
 
      paul                                                                
      ====================================================================== -->
-<project name="Java advanced projet" default="default" basedir=".">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Java advanced projet" default="make" basedir=".">
 	<description>Projet de java</description>
 
 	<property name="src.dir" location="src" />
@@ -47,7 +47,7 @@
 	</target>
 
 	<!--Creates the deployable jar file  -->
-	<target name="jar" depends="compile">
+	<target name="jar" depends="compile, resolve">
 		<jar destfile="${dist.dir}\fr.upem.java_advanced.project.jar" basedir="${build.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="fr.upem.java_advanced.project.Main" />
@@ -57,9 +57,6 @@
 
 	<target name="make" depends="compile, jar, docs" description="make the classes, the JAR file, and build javadoc">
 		<description>Main target</description>
-	</target>
-
-	<target name="default" depends="make">
 	</target>
 
 	<!-- Compiles the java code (including the usage of library for JUnit -->
@@ -73,4 +70,10 @@
 			</classpath>
 		</javac>
 	</target>
+	<!-- ================================= 
+	          target: resolve              
+	         ================================= -->
+    <target name="resolve" description="--> retrieve dependencies with ivy">
+        <ivy:retrieve />
+    </target>
 </project>
