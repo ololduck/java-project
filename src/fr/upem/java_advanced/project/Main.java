@@ -18,6 +18,7 @@ import com.martiansoftware.jsap.UnflaggedOption;
 import fr.upem.java_advanced.project.zip.ArchiveChecker;
 import fr.upem.java_advanced.project.zip.Zip;
 
+
 public class Main {
 
 	private static final Logger	logger			= Logger.getLogger("fr.upem.java_advanced.project");
