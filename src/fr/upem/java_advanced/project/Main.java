@@ -27,6 +27,9 @@ public class Main {
 	static {
 		/* cli args definition */
 		Switch checkArchives = new Switch("CheckArchives").setShortFlag('1').setLongFlag("check-archives");
+		checkArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des fichiers ZIP.");
+		Switch archiveOfArchives = new Switch("archiveOfArchives").setShortFlag('2').setLongFlag("archive-of-archives");
+		archiveOfArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des archives ZIP d'archives ZIP, et fait comme si le flag -1 était passé pour ces archives.");
 
 		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 
@@ -58,6 +61,7 @@ public class Main {
 		try {
 			/* running modes */
 			jsap.registerParameter(checkArchives);
+			jsap.registerParameter(archiveOfArchives);
 
 			jsap.registerParameter(onetop);
 			jsap.registerParameter(forceOnetop);
@@ -118,6 +122,7 @@ public class Main {
 		Path archive = Paths.get(cliArgs.getString("archives"));
 		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
 		Zip.extract(archive, folder);
+		//coucou
 	}
 
 }
