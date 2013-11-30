@@ -5,7 +5,7 @@
      Java advanced projet    
      Projet de java
 
-     paul                                                                
+     Paul Ollivier and Thomas Pape                                                           
      ====================================================================== -->
 <project xmlns:ivy="antlib:org.apache.ivy.ant" name="Java advanced projet" default="make" basedir=".">
 	<description>Projet de java</description>
@@ -15,6 +15,7 @@
 	<property name="dist.dir" location="dist" />
 	<property name="docs.dir" location="docs" />
 	<property name="lib.dir" location="lib" />
+	<property name="jar.name" location="DMChecker.jar" />
 
 	<!-- Deletes the existing build, docs and dist directory-->
 	<target name="clean">
@@ -49,7 +50,7 @@
 
 	<!--Creates the deployable jar file  -->
 	<target name="jar" depends="compile, resolve" description="builds the jar file in ${dist.dir}.">
-		<jar destfile="${dist.dir}\fr.upem.java_advanced.project.jar" basedir="${build.dir}">
+		<jar destfile="${dist.dir}\${jar.name}" basedir="${build.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="fr.upem.java_advanced.project.Main" />
 			</manifest>
@@ -60,7 +61,6 @@
 		<description>Main target</description>
 	</target>
 
-	<!-- Compiles the java code (including the usage of library for JUnit -->
 	<target name="compile" depends="clean, makedir, resolve">
 		<javac srcdir="${src.dir}" destdir="${build.dir}">
 			<classpath>
@@ -80,10 +80,6 @@
 		<mkdir dir="${user.home}/.ant/lib" />
 		<get dest="${user.home}/.ant/lib/ivy.jar" src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.2.0/ivy-2.2.0.jar" />
 	</target>
-
-	<!-- ================================= 
-	          target: resolve              
-	         ================================= -->
 
 	<target name="resolve" depends="bootstrap">
 		<mkdir dir="${lib.dir}" />
