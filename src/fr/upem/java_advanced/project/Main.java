@@ -122,7 +122,6 @@ public class Main {
 		Path archive = Paths.get(cliArgs.getString("archives"));
 		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
 		Zip.extract(archive, folder);
-		//coucou
 	}
 
 }
