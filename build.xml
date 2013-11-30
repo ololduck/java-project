@@ -4,7 +4,7 @@
 
      Java advanced projet    
      Projet de java
-                   
+
      paul                                                                
      ====================================================================== -->
 <project name="Java advanced projet" default="default" basedir=".">
@@ -14,7 +14,7 @@
 	<property name="build.dir" location="bin" />
 	<property name="dist.dir" location="dist" />
 	<property name="docs.dir" location="docs" />
-
+	<property name="lib.dir" location="lib" />
 
 	<!-- Deletes the existing build, docs and dist directory-->
 	<target name="clean">
@@ -37,34 +37,40 @@
 			<fileset dir="${src.dir}">
 				<include name="**" />
 			</fileset>
+			<classpath>
+				<pathelement path="${classpath}" />
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
 		</javadoc>
 	</target>
 
 	<!--Creates the deployable jar file  -->
 	<target name="jar" depends="compile">
-		<jar destfile="${dist.dir}\fr.upem.java_advanced.project" basedir="${build.dir}">
+		<jar destfile="${dist.dir}\fr.upem.java_advanced.project.jar" basedir="${build.dir}">
 			<manifest>
-				<attribute name="Main-Class" value="test.Main" />
+				<attribute name="Main-Class" value="fr.upem.java_advanced.project.Main" />
 			</manifest>
 		</jar>
 	</target>
 
-	<target name="main" depends="compile, jar, docs">
+	<target name="make" depends="compile, jar, docs" description="make the classes, the JAR file, and build javadoc">
 		<description>Main target</description>
+	</target>
+
+	<target name="default" depends="make">
 	</target>
 
 	<!-- Compiles the java code (including the usage of library for JUnit -->
 	<target name="compile" depends="clean, makedir">
 		<javac srcdir="${src.dir}" destdir="${build.dir}">
+			<classpath>
+				<pathelement path="${classpath}" />
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
 		</javac>
-
 	</target>
-
-	<!-- ================================= 
-          target: default              
-         ================================= -->
-	<target name="default" depends="compile" description="Projet de java">
-
-	</target>
-
 </project>
