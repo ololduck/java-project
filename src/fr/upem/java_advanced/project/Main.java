@@ -117,6 +117,7 @@ public class Main {
 				System.err.println("Error: " + errs.next());
 			}
 			System.err.println(getHelp());
+			System.exit(1);
 		}
 
 		Path archive = Paths.get(cliArgs.getString("archives"));
