@@ -15,7 +15,6 @@
 	<property name="dist.dir" location="dist" />
 	<property name="docs.dir" location="docs" />
 	<property name="lib.dir" location="lib" />
-	<property name="jar.name" location="DMChecker.jar" />
 
 	<!-- Deletes the existing build, docs and dist directory-->
 	<target name="clean">
@@ -50,10 +49,11 @@
 
 	<!--Creates the deployable jar file  -->
 	<target name="jar" depends="compile, resolve" description="builds the jar file in ${dist.dir}.">
-		<jar destfile="${dist.dir}\${jar.name}" basedir="${build.dir}">
+		<jar destfile="${dist.dir}\DMChecker.jar" basedir="${build.dir}">
 			<manifest>
 				<attribute name="Main-Class" value="fr.upem.java_advanced.project.Main" />
 			</manifest>
+			<zipgroupfileset dir="${lib.dir}" includes="**/*.jar" />
 		</jar>
 	</target>
 
