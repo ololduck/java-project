@@ -15,7 +15,7 @@ import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.UnflaggedOption;
 
-import fr.upem.java_advanced.project.zip.Zip;
+import fr.upem.java_advanced.project.zip.ArchiveChecker;
 
 public class Main {
 
@@ -31,6 +31,9 @@ public class Main {
 		Switch archiveOfArchives = new Switch("archiveOfArchives").setShortFlag('2').setLongFlag("archive-of-archives");
 		archiveOfArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des archives ZIP d'archives ZIP, et fait comme si le flag -1 était passé pour ces archives.");
 
+		Switch verbose = new Switch("verbosity").setShortFlag('v').setLongFlag("verbose");
+		Switch debug = new Switch("debug").setLongFlag("debug");
+		
 		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 
 		onetop.setHelp("Un seul sous répertoire de nom <onetop> dans le répertoire racine de l'archive sans compter les répertoires et fichiers ignorés comme : './ '");
@@ -59,9 +62,14 @@ public class Main {
 
 		UnflaggedOption archives = new UnflaggedOption("archives").setStringParser(JSAP.STRING_PARSER).setRequired(true).setGreedy(true);
 		try {
+			/* generic flags */
+			jsap.registerParameter(verbose);
+			jsap.registerParameter(debug);
+			
 			/* running modes */
 			jsap.registerParameter(checkArchives);
 			jsap.registerParameter(archiveOfArchives);
+			
 
 			jsap.registerParameter(onetop);
 			jsap.registerParameter(forceOnetop);
@@ -119,10 +127,19 @@ public class Main {
 			System.err.println(getHelp());
 			System.exit(1);
 		}
+		logger.setLevel(Level.WARNING);
+		if(cliArgs.getBoolean("verbose", false))
+			logger.setLevel(Level.INFO);
+		if(cliArgs.getBoolean("debug", false))
+			logger.setLevel(Level.ALL);
 
-		Path archive = Paths.get(cliArgs.getString("archives"));
-		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
-		Zip.extract(archive, folder);
+//		Path archive = Paths.get(cliArgs.getString("archives"));
+//		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
+		for(String s : cliArgs.getStringArray("archives")) {
+			Path p = Paths.get(s);
+			System.out.println(ArchiveChecker.isOnetopZipArchive(p));
+		}
+		//Zip.extract(archive, folder);
 	}
 
 }
