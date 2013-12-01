@@ -1,9 +1,13 @@
 package fr.upem.java_advanced.project.zip;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -16,7 +20,7 @@ public class ArchiveChecker {
 	/**
 	 * Performs a check on a file
 	 * 
-	 * @param Path
+	 * @param p
 	 *            the path to the file to check
 	 * @return true, if is a zip file
 	 * @throws IOException
@@ -43,37 +47,34 @@ public class ArchiveChecker {
 	/**
 	 * Returns if the given zip file has only one directory at the root.
 	 * 
+	 * Since we can't have any information about the directory tree directly in
+	 * the zip, we have to deflate the zip file to a tmp dir, and check the tree
+	 * while we are deflating in order to be sure we only have ONE directory at
+	 * the root.
+	 * 
+	 * GAH.
+	 * 
 	 * @param p
-	 *            the Path of a zip file
+	 *            the path of a zip file
 	 * @return true, if the file only has one directory at the root.
+	 * @throws IOException 
 	 */
-	public static boolean isOnetopZipArchive(Path p) {
+	public static boolean isOnetopZipArchive(Path p) throws IOException {
 		if (!isZipArchive(p)) {
 			throw new IllegalArgumentException("given file is no zipfile :/");
 		}
-		try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(p.toFile())))) {
-			
-			ZipEntry ze = zis.getNextEntry();
-			logger.fine(ze.getName());
-			System.out.println(ze.getName());
-			if (!ze.isDirectory()) {
+
+		Path tmp = Files.createTempDirectory("dm_checker");
+		Zip.extract(p, tmp);
+		File root = tmp.toFile();
+		short directoryCount = 0;
+		for(File f: root.listFiles()) {
+			if(f.isDirectory())
+				directoryCount++;
+			if(directoryCount > 1)
 				return false;
-			}
-			
-			ze = zis.getNextEntry();
-			
-			while((ze = zis.getNextEntry()) != null) {
-
-				System.out.println(ze.getName());
-			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return false;
+		
+		return directoryCount == 1;
 	}
 }

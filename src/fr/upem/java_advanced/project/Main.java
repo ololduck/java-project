@@ -3,10 +3,8 @@ package fr.upem.java_advanced.project;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -16,8 +14,6 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.UnflaggedOption;
 
 import fr.upem.java_advanced.project.zip.ArchiveChecker;
-import fr.upem.java_advanced.project.zip.Zip;
-
 
 public class Main {
 
@@ -35,7 +31,7 @@ public class Main {
 
 		Switch verbose = new Switch("verbosity").setShortFlag('v').setLongFlag("verbose");
 		Switch debug = new Switch("debug").setLongFlag("debug");
-		
+
 		FlaggedOption onetop = new FlaggedOption("onetop").setShortFlag('o').setLongFlag("onetop").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(false).setRequired(false);
 
 		onetop.setHelp("Un seul sous répertoire de nom <onetop> dans le répertoire racine de l'archive sans compter les répertoires et fichiers ignorés comme : './ '");
@@ -67,11 +63,10 @@ public class Main {
 			/* generic flags */
 			jsap.registerParameter(verbose);
 			jsap.registerParameter(debug);
-			
+
 			/* running modes */
 			jsap.registerParameter(checkArchives);
 			jsap.registerParameter(archiveOfArchives);
-			
 
 			jsap.registerParameter(onetop);
 			jsap.registerParameter(forceOnetop);
@@ -112,14 +107,6 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		try {
-			FileHandler fh = new FileHandler(LOGFILE_NAME);
-			fh.setLevel(Level.ALL);
-			fh.setFormatter(new SimpleFormatter());
-		} catch (SecurityException | IOException e1) {
-			logger.warning("Could not open log file \"" + LOGFILE_NAME + "\": " + e1.getMessage());
-		}
-
 		cliArgs = jsap.parse(args);
 		if (!cliArgs.success()) {
 			for (@SuppressWarnings("rawtypes")
@@ -130,14 +117,14 @@ public class Main {
 			System.exit(1);
 		}
 		logger.setLevel(Level.WARNING);
-		if(cliArgs.getBoolean("verbose", false))
+		if (cliArgs.getBoolean("verbose", false))
 			logger.setLevel(Level.INFO);
-		if(cliArgs.getBoolean("debug", false))
+		if (cliArgs.getBoolean("debug", false))
 			logger.setLevel(Level.ALL);
 
 		Path archive = Paths.get(cliArgs.getString("archives"));
 		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
-		for(String s : cliArgs.getStringArray("archives")) {
+		for (String s : cliArgs.getStringArray("archives")) {
 			Path p = Paths.get(s);
 			System.out.println(ArchiveChecker.isOnetopZipArchive(p));
 		}
