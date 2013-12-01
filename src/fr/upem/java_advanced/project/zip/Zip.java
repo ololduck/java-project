@@ -22,9 +22,8 @@ public class Zip {
 	 * @param dst
 	 *            the top father folder where the zip will be extracted, must
 	 *            already exist
-	 * @return the path to the extracted folder
 	 */
-	public static Path extract(Path path, Path dst) {
+	public static void extract(Path path, Path dst) {
 		if (!ArchiveChecker.isZipArchive(path)) {
 			throw new IllegalArgumentException(path + " is not a correct zip file");
 		}
@@ -70,6 +69,5 @@ public class Zip {
 			throw new IllegalArgumentException("Error on reading the source or writing on the destination");
 		}
 
-		return null;
 	}
 }
