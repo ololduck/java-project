@@ -3,6 +3,8 @@ package fr.upem.java_advanced.project;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +16,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.UnflaggedOption;
 
 import fr.upem.java_advanced.project.zip.ArchiveChecker;
+import fr.upem.java_advanced.project.zip.Zip;
 
 public class Main {
 
@@ -116,19 +119,34 @@ public class Main {
 			System.err.println(getHelp());
 			System.exit(1);
 		}
-		logger.setLevel(Level.WARNING);
+		
+		if(cliArgs.getBoolean("checkArchives", false) || cliArgs.getBoolean("archiveOfArchives", false)) {
+			 logger.severe("Aucun mode opératoire (-1, -2, -3, -4) n'a été selectionné!");
+			 System.exit(1);
+		}
+		
+		Level lvl = Level.WARNING;
 		if (cliArgs.getBoolean("verbose", false))
-			logger.setLevel(Level.INFO);
+			lvl = Level.INFO;
 		if (cliArgs.getBoolean("debug", false))
-			logger.setLevel(Level.ALL);
+			lvl = Level.ALL;
+
+		logger.setLevel(lvl);
+		for(Handler h: logger.getHandlers()) {
+			h.setLevel(lvl);
+		}
 
 		Path archive = Paths.get(cliArgs.getString("archives"));
-		Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
+		//Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
 		for (String s : cliArgs.getStringArray("archives")) {
 			Path p = Paths.get(s);
-			System.out.println(ArchiveChecker.isOnetopZipArchive(p));
+			try {
+				ArchiveChecker.checkArchive(p, cliArgs);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		Zip.extract(archive, folder);
+		//Zip.extract(archive, folder);
 	}
-
 }

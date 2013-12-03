@@ -24,10 +24,6 @@ public class Zip {
 	 *            already exist
 	 */
 	public static void extract(Path path, Path dst) {
-		if (!ArchiveChecker.isZipArchive(path)) {
-			throw new IllegalArgumentException(path + " is not a correct zip file");
-		}
-
 		if (!dst.toFile().isDirectory()) {
 			throw new IllegalArgumentException(dst.toAbsolutePath() + " is not a correct folder");
 		}
