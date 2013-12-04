@@ -21,13 +21,12 @@ import fr.upem.java_advanced.project.zip.Zip;
 public class Main {
 
 	private static final Logger	logger			= Logger.getLogger("fr.upem.java_advanced.project");
-	private static final String	LOGFILE_NAME	= "DMChecker.log";
 	private static final JSAP	jsap			= new JSAP();
 	public static JSAPResult	cliArgs			= null;
 
 	static {
 		/* cli args definition */
-		Switch checkArchives = new Switch("CheckArchives").setShortFlag('1').setLongFlag("check-archives");
+		Switch checkArchives = new Switch("checkArchives").setShortFlag('1').setLongFlag("check-archives");
 		checkArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des fichiers ZIP.");
 		Switch archiveOfArchives = new Switch("archiveOfArchives").setShortFlag('2').setLongFlag("archive-of-archives");
 		archiveOfArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des archives ZIP d'archives ZIP, et fait comme si le flag -1 était passé pour ces archives.");
@@ -120,8 +119,13 @@ public class Main {
 			System.exit(1);
 		}
 		
-		if(cliArgs.getBoolean("checkArchives", false) || cliArgs.getBoolean("archiveOfArchives", false)) {
+		if(cliArgs.getBoolean("checkArchives") || cliArgs.getBoolean("archiveOfArchives")) {
 			 logger.severe("Aucun mode opératoire (-1, -2, -3, -4) n'a été selectionné!");
+			 System.exit(1);
+		}
+		
+		if(cliArgs.getBoolean("checkArchives") && cliArgs.getBoolean("archiveOfArchives")) {
+			 logger.severe("Impossible d'utiliser -1 et -2 en même temps!");
 			 System.exit(1);
 		}
 		
@@ -136,17 +140,15 @@ public class Main {
 			h.setLevel(lvl);
 		}
 
-		Path archive = Paths.get(cliArgs.getString("archives"));
-		//Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
 		for (String s : cliArgs.getStringArray("archives")) {
 			Path p = Paths.get(s);
 			try {
-				ArchiveChecker.checkArchive(p, cliArgs);
+				ArchiveChecker ac = new ArchiveChecker(p);
+				ac.checkArchive();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// Nothing for now, but TODO: add proper handling.
 				e.printStackTrace();
 			}
 		}
-		//Zip.extract(archive, folder);
 	}
 }

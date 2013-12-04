@@ -47,6 +47,10 @@
 		</javadoc>
 	</target>
 
+	<target name="javaversion">
+		<echo>using java version ${java.version}</echo>
+	</target>
+
 	<!--Creates the deployable jar file  -->
 	<target name="jar" depends="compile, resolve" description="builds the jar file in ${dist.dir}.">
 		<jar destfile="${dist.dir}\DMChecker.jar" basedir="${build.dir}">
@@ -57,7 +61,7 @@
 		</jar>
 	</target>
 
-	<target name="make" depends="compile, jar, docs, resolve" description="make the classes, the JAR file, and build javadoc">
+	<target name="make" depends="javaversion, compile, jar, docs, resolve" description="make the classes, the JAR file, and build javadoc">
 		<description>Main target</description>
 	</target>
 

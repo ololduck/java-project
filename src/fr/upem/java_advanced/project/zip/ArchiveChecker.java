@@ -1,47 +1,61 @@
+/**
+ * ArchiveChecker
+ * 
+ * Performs a number of verifications on a given ZIP file.
+ */
+
 package fr.upem.java_advanced.project.zip;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.logging.Logger;
-import java.util.zip.ZipFile;
 
-import com.martiansoftware.jsap.JSAPResult;
+import fr.upem.java_advanced.project.Main;
+import fr.upem.java_advanced.project.zip.Zip;
 
 public class ArchiveChecker {
-	private static final Logger	logger	= Logger.getLogger("fr.upem.java_advanced.project");
+	private static final Logger					logger					= Logger.getLogger("fr.upem.java_advanced.project");
+	private static final Map<String, Boolean>	enabledForceParameters	= new HashMap<>();
+
+	private final List<Path>					forbiddenFilesFound		= new ArrayList<>();
+	private final Map<String, Boolean>			seenRequiredFiles		= new HashMap<>();
+
+	private final Path							archivePath;
+
+	public ArchiveChecker(Path archivePath) {
+		this.archivePath = archivePath;
+		enabledForceParameters.put("forcebeginsWith", false);
+		enabledForceParameters.put("forceendssWith", false);
+		enabledForceParameters.put("forceinterdit", false);
+		enabledForceParameters.put("forceonetop", false);
+		enabledForceParameters.put("forceexiste", false);
+		checkForForceParameters();
+	}
 
 	/**
-	 * Performs a check on a file
-	 * 
-	 * @param p
-	 *            the path to the file to check
-	 * @return true, if is a zip file
-	 * @throws IOException
+	 * sets some bits to true if --force options are active (such as
+	 * --forcebeginsWith,...). FIXME: rewrite that. its just plain ugly.
 	 */
-	public static boolean isZipArchive(Path p) {
-		ZipFile zip = null;
-		try {
-			zip = new ZipFile(p.toFile());
-		} catch (IOException e) {
-			return false;
-		} finally {
-			if (zip != null) {
-				try {
-					zip.close();
-				} catch (IOException e) {
-					return false;
-				}
-				return true;
-			}
-		}
-		return false;
+	private void checkForForceParameters() {
+		if (Main.cliArgs.getStringArray("forcebeginsWith").length > 0)
+			enabledForceParameters.put("forcebeginsWith", true);
+		if (Main.cliArgs.getStringArray("forceendsWith").length > 0)
+			enabledForceParameters.put("forceendsWith", true);
+		if (Main.cliArgs.getStringArray("forceinterdit").length > 0)
+			enabledForceParameters.put("forceinterdit", true);
+		if (Main.cliArgs.getStringArray("forceonetop").length > 0)
+			enabledForceParameters.put("forceonetop", true);
+		if (Main.cliArgs.getStringArray("forceexiste").length > 0)
+			enabledForceParameters.put("forceexiste", true);
 	}
 
 	/**
@@ -61,8 +75,8 @@ public class ArchiveChecker {
 	 */
 	public static boolean isOnetop(Path p, String expectedName) throws IOException {
 		File root = p.toFile();
-		//first, check if there is only one directory at the root
-		File onetopFolder=null;
+		// first, check if there is only one directory at the root
+		File onetopFolder = null;
 		short directoryCount = 0;
 		for (File f : root.listFiles()) {
 			if (f.isDirectory()) {
@@ -72,11 +86,19 @@ public class ArchiveChecker {
 			if (directoryCount > 1)
 				return false;
 		}
-		//then, we check if this directory has the right name
-		if(onetopFolder != null && !onetopFolder.getName().equals(expectedName))
+		// then, we check if this directory has the right name
+		if (onetopFolder != null && !onetopFolder.getName().equals(expectedName))
 			return false;
 
 		return directoryCount == 1;
+	}
+	private String buildSeenMap(String array[]) {
+		Map<String, Boolean> m = new HashMap<>();
+		String mustMatchRegex = null;
+		if (array.length != 0) {
+			mustMatchRegex = generateRegexFromArray(array);
+		}
+		return mustMatchRegex;
 	}
 
 	/**
@@ -85,68 +107,71 @@ public class ArchiveChecker {
 	 * 
 	 * This function unzips the file in a temporary directory.
 	 * 
-	 * @param p
-	 *            The path to an archive file
-	 * @param cliArgs
-	 *            CLI arguments, defining the behaviour of this method.
+	 * @return a Path to the temporary directory containing the unzipped file,
+	 *         for later use.
 	 * @throws IOException
 	 */
-	public static void checkArchive(Path p, JSAPResult cliArgs) throws IOException {
-		if (!isZipArchive(p))
-			throw new IllegalArgumentException("Not a zip file: " + p);
+	public Path checkArchive() throws IOException {
+		if (!Zip.isZipArchive(this.archivePath))
+			throw new IllegalArgumentException("Not a zip file: " + this.archivePath);
 		Path tmp = Files.createTempDirectory("dm_checker");
-		Zip.extract(p, tmp);
+		Zip.extract(this.archivePath, tmp);
 
-		StringBuilder mustMatchBuilder = new StringBuilder();
 		Map<String, Boolean> seenMap = new HashMap<>();
 
-		String mustMatch[] = cliArgs.getStringArray("existe");
+		final String mustMatch[] = Main.cliArgs.getStringArray("existe");
+		String mustMatchRegex = "";
 		if (mustMatch.length != 0) {
-			for (String word : mustMatch) {
-				mustMatchBuilder.append(word + "|");
+			for (String word : mustMatch)
 				seenMap.put(word, false);
+			mustMatchRegex = generateRegexFromArray(mustMatch);
+		}
+
+		String interditRegex = generateRegexFromArray(Main.cliArgs.getStringArray("interdit"));
+		logger.fine("interdit: " + interditRegex);
+
+		String beginsWithRegex = generateRegexFromArray(Main.cliArgs.getStringArray("beginsWith")) + ".*";
+		logger.fine("begins with: " + beginsWithRegex); 
+		String endsWithRegex = ".*" + generateRegexFromArray(Main.cliArgs.getStringArray("endsWith"));
+		logger.fine("endsWith: " + endsWithRegex);
+		String onetopFileName = Main.cliArgs.getString("onetop");
+
+		boolean isFirstIteration = true;
+		tmp.forEach((path) -> {
+			logger.fine(path.toString());
+			if (isFirstIteration) {
+				try {
+				ArchiveChecker.isOnetop(path, onetopFileName);
+				//isFirstIteration = false;
+				}catch(IOException e) {
+					logger.warning("IOEXCEPTION!!!");
+				}
 			}
-			if (mustMatchBuilder.length() > 0)
-				mustMatchBuilder.deleteCharAt(mustMatchBuilder.length() - 1);
-		}
+			// do this with every cli arg
+			if (path.toString().matches(buildSeenMap(mustMatch))) {
+				seenMap.put(path.toFile().getName(), true);
+			}
+			if (path.toString().matches(interditRegex)) {
+				logger.warning("file " + path + " has a forbidden name");
+			}
+			if (path.toString().matches(beginsWithRegex)) {
+				logger.warning("file " + path + " has a forbidden name");
+			}
+			if (path.toString().matches(endsWithRegex)) {
+				logger.warning("file " + path + " has a forbidden name");
+			}
+		});
 
-		StringBuilder mustNotMatchBuilder = new StringBuilder();
-
-		String mustNotBePresent[] = cliArgs.getStringArray("interdit");
-		if (mustNotBePresent.length != 0) {
-			String r = generateRegexFromArray(mustNotBePresent);
-			mustNotMatchBuilder.append(r);
-		}
-
-		String mustNotBeginWith[] = cliArgs.getStringArray("beginsWith");
-		if (mustNotBeginWith.length != 0) {
-			if (mustNotMatchBuilder.length() > 0)
-				mustNotMatchBuilder.append("|");
-			mustNotMatchBuilder.append(generateRegexFromArray(mustNotBeginWith));
-		}
-		String mustEndWith[] = cliArgs.getStringArray("endsWith");
-		if (mustNotBePresent.length != 0 && mustNotBeginWith.length == 0 && mustEndWith.length != 0)
-			mustNotMatchBuilder.append("|");
-		if (mustNotBeginWith.length != 0 && mustEndWith.length != 0)
-			mustNotMatchBuilder.append(".*");
-
-		if (mustEndWith.length != 0) {
-			mustNotMatchBuilder.append(generateRegexFromArray(mustEndWith));
-		}
-		if (mustNotMatchBuilder.length() > 0)
-			logger.info("file must not match " + mustNotMatchBuilder.toString());
-		if (mustMatchBuilder.length() > 0)
-			logger.info("file must match " + mustMatchBuilder.toString());
-		recursivlyCheckFolders(tmp.toFile(), mustNotMatchBuilder.toString(), mustMatchBuilder.toString(), seenMap);
 		// then check if all required files are here
-		for(Entry<String, Boolean> me : seenMap.entrySet()) {
-			if(me.getValue() == false) {
-				logger.warning("required file " + me.getKey() + " has not been found in" + p);
+		for (Entry<String, Boolean> me : seenMap.entrySet()) {
+			if (me.getValue() == false) {
+				logger.warning("required file " + me.getKey() + " has not been found in" + this.archivePath);
 			}
 		}
+		return tmp;
 	}
 
-	private static String generateRegexFromArray(String array[]) {
+	private String generateRegexFromArray(String array[]) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(");
 		for (String end : array) {
@@ -159,22 +184,23 @@ public class ArchiveChecker {
 		return sb.toString();
 	}
 
-	private static void recursivlyCheckFolders(File dir, String filesNotMustMatch, String filesMustMatch, Map<String, Boolean> seenMap) {
+	private void recursivlyCheckFolders(File dir, String filesNotMustMatch, String filesMustMatch) {
 		Queue<File> toProcess = new LinkedList<>();
 		toProcess.add(dir);
 		Path rootPath = dir.toPath();
 		while (!toProcess.isEmpty()) {
 			File f = toProcess.poll();
 			for (File child : f.listFiles()) {
+				Path childPath = rootPath.relativize(child.toPath());
 				logger.info("handling file " + child.getName());
-				if(seenMap.containsKey(rootPath.relativize(child.toPath()).toString())) {
-					seenMap.put(rootPath.relativize(child.toPath()).toString(), true);
+				if (seenRequiredFiles.containsKey(childPath.toString())) {
+					seenRequiredFiles.put(childPath.toString(), true);
 				}
 				if (child.isDirectory()) {
 					toProcess.add(child);
 				}
 				if (child.getName().matches(filesNotMustMatch) || !child.getName().matches(filesMustMatch)) {
-					logger.warning("File " + rootPath.relativize(child.toPath()) + " matches forbidden filenames!");
+					forbiddenFilesFound.add(childPath);
 				}
 			}
 		}
