@@ -20,7 +20,6 @@ import java.util.Queue;
 import java.util.logging.Logger;
 
 import fr.upem.java_advanced.project.Main;
-import fr.upem.java_advanced.project.zip.Zip;
 
 public class ArchiveChecker {
 	private static final Logger					logger					= Logger.getLogger("fr.upem.java_advanced.project");
