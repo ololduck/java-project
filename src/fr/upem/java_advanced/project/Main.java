@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,8 +17,11 @@ import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.UnflaggedOption;
 
+import fr.upem.java_advanced.project.args.Args;
+import fr.upem.java_advanced.project.args.ValidationError;
 import fr.upem.java_advanced.project.zip.ArchiveChecker;
 import fr.upem.java_advanced.project.zip.Zip;
+import fr.upem.java_advanced.project.io.Messages;
 
 public class Main {
 
@@ -136,6 +141,41 @@ public class Main {
 					+ e.getMessage());
 			System.exit(1);
 		}
+	}
+	
+	public static Args createCliArgsChainCheck(JSAPResult cli) {
+		Args begin = null;
+		List<ValidationError> fatalErrors = new ArrayList<>();
+		String interdit[] = cli.getStringArray("interdit");
+		if(interdit.length>0) {
+			begin = new Args(
+					(path) -> {
+						List<ValidationError> errs = new ArrayList<>();
+						for(String i:interdit) {
+							if(path.toString().matches(i)) {
+								errs.add(new ValidationError(Messages.getOutputString("i", path.toString())));
+							}
+						}
+						return errs;
+					}, null);
+		}
+		
+		String forceinterdit[] = cli.getStringArray("forceinterdit");
+		if(interdit.length > 0) {
+			Args forceInterdit = new Args((Path path) -> {
+				for(String fi: forceinterdit) {
+					if(path.toString().matches(fi)) {
+						fatalErrors.add(new ValidationError(Messages.getOutputString("forceinterdit", path.toString())));
+					}
+				}
+				return fatalErrors;
+			}, null);
+			if(begin != null)
+				begin.setNext(forceInterdit);
+			else
+				begin = forceInterdit;
+		}
+		return begin;
 	}
 
 	/**

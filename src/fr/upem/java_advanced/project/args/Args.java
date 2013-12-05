@@ -1,6 +1,7 @@
 package fr.upem.java_advanced.project.args;
 
 import java.nio.file.Path;
+import java.util.List;
 
 public class Args {
 	private final Validator validator;
@@ -11,12 +12,14 @@ public class Args {
 		this.next = next;
 	}
 	
-	public void apply(Path p) {
-		validator.validate(p);
+	public List<ValidationError> apply(Path p) {
+		List<ValidationError> errors;
+		errors = validator.validate(p);
 		
 		if (next != null) {
-			next.apply(p);
+			errors.addAll(next.apply(p));
 		}
+		return errors;
 	}
 	
 	public void setNext(Args next) {
