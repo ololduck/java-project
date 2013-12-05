@@ -1,9 +1,9 @@
 package fr.upem.java_advanced.project;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,8 +27,8 @@ public class Main {
 
 	static {
 		/* cli args definition */
-		Switch checkArchives = new Switch("CheckArchives").setShortFlag('1').setLongFlag("check-archives");
-		checkArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des fichiers ZIP.");
+		Switch checkArchive = new Switch("checkArchive").setShortFlag('1').setLongFlag("check-archive");
+		checkArchive.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des fichiers ZIP.");
 		Switch archiveOfArchives = new Switch("archiveOfArchives").setShortFlag('2').setLongFlag("archive-of-archives");
 		archiveOfArchives.setHelp("Vérifie que les fichiers donnés en paramètre sont bien des archives ZIP d'archives ZIP, et fait comme si le flag -1 était passé pour ces archives.");
 
@@ -61,14 +61,14 @@ public class Main {
 		FlaggedOption forceInterdit = new FlaggedOption("forceinterdit").setShortFlag('I').setLongFlag("forceinterdit").setStringParser(JSAP.STRING_PARSER).setAllowMultipleDeclarations(true).setRequired(false);
 		forceInterdit.setHelp("Comme -i. Si le motif est trouvé, le programme quittera avec erreur.");
 
-		UnflaggedOption archives = new UnflaggedOption("archives").setStringParser(JSAP.STRING_PARSER).setRequired(true).setGreedy(true);
+		UnflaggedOption paths = new UnflaggedOption("paths").setStringParser(JSAP.STRING_PARSER).setRequired(true).setGreedy(true);
 		try {
 			/* generic flags */
 			jsap.registerParameter(verbose);
 			jsap.registerParameter(debug);
 
 			/* running modes */
-			jsap.registerParameter(checkArchives);
+			jsap.registerParameter(checkArchive);
 			jsap.registerParameter(archiveOfArchives);
 
 			jsap.registerParameter(onetop);
@@ -87,7 +87,7 @@ public class Main {
 			jsap.registerParameter(forceInterdit);
 
 			/* the other parameters */
-			jsap.registerParameter(archives);
+			jsap.registerParameter(paths);
 
 		} catch (JSAPException e) {
 			logger.severe("Could not register a cli parameter: " + e.getMessage());
@@ -119,34 +119,65 @@ public class Main {
 			System.err.println(getHelp());
 			System.exit(1);
 		}
-		
-		if(cliArgs.getBoolean("checkArchives", false) || cliArgs.getBoolean("archiveOfArchives", false)) {
-			 logger.severe("Aucun mode opératoire (-1, -2, -3, -4) n'a été selectionné!");
-			 System.exit(1);
+
+		if (!cliArgs.getBoolean("checkArchive") && !cliArgs.getBoolean("archiveOfArchives")) {
+			logger.severe("Aucun mode opératoire (-1, -2, -3, -4) n'a été selectionné !");
+			System.exit(1);
 		}
-		
+
+		if (cliArgs.getBoolean("checkArchive") && cliArgs.getBoolean("archiveOfArchives")) {
+			logger.severe("Modes opératoires incompatibles détectés !");
+			System.exit(1);
+		}
+
 		Level lvl = Level.WARNING;
-		if (cliArgs.getBoolean("verbose", false))
+		if (cliArgs.getBoolean("verbosity"))
 			lvl = Level.INFO;
-		if (cliArgs.getBoolean("debug", false))
+		if (cliArgs.getBoolean("debug"))
 			lvl = Level.ALL;
 
 		logger.setLevel(lvl);
-		for(Handler h: logger.getHandlers()) {
+		for (Handler h : logger.getHandlers()) {
 			h.setLevel(lvl);
 		}
 
-		Path archive = Paths.get(cliArgs.getString("archives"));
-		//Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
-		for (String s : cliArgs.getStringArray("archives")) {
-			Path p = Paths.get(s);
-			try {
-				ArchiveChecker.checkArchive(p, cliArgs);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (cliArgs.getBoolean("archiveOfArchives")) {
+			String[] paths = cliArgs.getStringArray("paths");
+			Path archive = Paths.get(paths[0]);
+			String archiveName = archive.toFile().getAbsolutePath();
+			Path dst = null;
+			if (paths.length >= 2) {
+				dst = Paths.get(Paths.get(paths[1]) + "/" + archiveName.substring(archiveName.lastIndexOf("/") + 1, archive.toFile().getAbsolutePath().lastIndexOf(".")));
+			} else {
+				dst = Paths.get(archiveName.substring(archiveName.lastIndexOf("/") + 1, archive.toFile().getAbsolutePath().lastIndexOf(".")));
 			}
+
+			File dstFile = dst.toFile();
+			dstFile.mkdir();
+
+			Zip.extract(archive, dst);
+			
+			File[] archives = dstFile.listFiles();
+			
+			for (File f : archives) {
+				Zip.extract(Paths.get(f.getPath()), dst);
+			}
+
 		}
-		//Zip.extract(archive, folder);
+
+		// // ///////////////////////////////// TESTS //
+		// /////////////////////////////////////
+		// Path archive = Paths.get(cliArgs.getString("archives"));
+		// // Path folder = Paths.get(cliArgs.getStringArray("archives")[1]);
+		// for (String s : cliArgs.getStringArray("archives")) {
+		// Path p = Paths.get(s);
+		// try {
+		// ArchiveChecker.checkArchive(p);
+		// } catch (IOException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// }
+		// // Zip.extract(archive, folder);
 	}
 }
